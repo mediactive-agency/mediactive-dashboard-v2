@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 
-function getPragueHour() {
-  return parseInt(new Date().toLocaleString('en-US', { timeZone: 'Europe/Prague', hour: 'numeric', hour12: false }))
+function getLocalHour() {
+  return new Date().getHours()
 }
 
 function getAutoTheme() {
-  const h = getPragueHour()
+  const h = getLocalHour()
   return (h >= 19 || h < 6) ? 'dark' : 'light'
 }
 
@@ -50,3 +50,4 @@ export function useTheme() {
 
   return { theme, toggle, isManual, resetToAuto }
 }
+
