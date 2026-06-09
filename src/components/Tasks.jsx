@@ -24,7 +24,7 @@ export default function Tasks({ data, onDailyStats, filter, isMobile }) {
   const stats = useMemo(() => {
     if (!data) return null
     const allRows = []
-    for (const sheet of [data.mar, data.apr, data.may, data.jun||[]]) {
+    for (const sheet of Object.values(data.months)) {
       let ds = -1
       for (let i = 0; i < sheet.length; i++) { if (sheet[i] && sheet[i][1] === 'Name' && sheet[i][3] === 'Date') { ds = i+1; break } }
       if (ds < 0) continue
@@ -245,3 +245,4 @@ export default function Tasks({ data, onDailyStats, filter, isMobile }) {
     </div>
   )
 }
+
