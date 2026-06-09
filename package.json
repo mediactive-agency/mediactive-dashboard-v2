@@ -1,5 +1,5 @@
 {
-  "name": "mediactive-dashboard",
+  "name": "mediactive-dashboard-v2",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -26,3 +26,4 @@
     "vite": "^8.0.12"
   }
 }
+
