@@ -196,7 +196,7 @@ export default function Sales({ data, filter, customFrom, customTo, isMobile, is
 
     // LinkedIn map from outreach
     const linkedinMap = {}
-    const allOutreach = [...data.mar, ...data.apr, ...data.may, ...(data.jun||[])]
+    const allOutreach = Object.values(data.months).flat()
     let foundH = false
     for (const r of allOutreach) {
       if (!foundH) { if (r && r[1] === 'Name' && r[3] === 'Date') { foundH = true } continue }
@@ -336,3 +336,4 @@ export default function Sales({ data, filter, customFrom, customTo, isMobile, is
     </div>
   )
 }
+
