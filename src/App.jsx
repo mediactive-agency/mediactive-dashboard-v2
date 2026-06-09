@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './index.css'
-import { loadConfig, saveConfig } from './config'
+import { loadConfig, saveConfig, consumePairFromUrl } from './config'
 import { useData } from './hooks/useData'
 import { useCalendly } from './hooks/useCalendly'
 import { useTheme } from './hooks/useTheme'
@@ -24,7 +24,11 @@ function getGreeting(name) {
 }
 
 export default function App() {
-  const [config, setConfig] = useState(() => loadConfig())
+  const [config, setConfig] = useState(() => {
+    const paired = consumePairFromUrl()
+    if (paired) { saveConfig(paired); return paired }
+    return loadConfig()
+  })
   const [page, setPage] = useState('dashboard')
   const [filter, setFilter] = useState('all')
   const [customFrom, setCustomFrom] = useState('')
