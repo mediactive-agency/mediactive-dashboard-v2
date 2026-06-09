@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { EMPTY_CONFIG, parseSheetId, importConfigFile } from '../config'
 import { PROXY_SCRIPT, testProxy, fetchTabs } from '../proxy'
 import { LOGO_SVG } from '../utils/data'
+import PairQR from './PairQR'
 
 const GRADIENT = 'linear-gradient(90deg, #B16CEA, #FF5E69, #FFA84B)'
 
@@ -49,7 +50,7 @@ function Label({ children }) {
   return <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{children}</div>
 }
 
-const STEPS = ['Welcome', 'Connect Google', 'Outreach Sheet', 'Sales Sheet', 'Calendly']
+const STEPS = ['Welcome', 'Connect Google', 'Outreach Sheet', 'Sales Sheet', 'Calendly', 'Done']
 
 export default function SetupWizard({ onComplete, isMobile }) {
   const [step, setStep] = useState(0)
@@ -134,6 +135,7 @@ export default function SetupWizard({ onComplete, isMobile }) {
     2: !!cfg.outreachSheetId && cfg.outreachTabs.length > 0,
     3: !!cfg.salesSheetId && !!cfg.salesTab,
     4: true,
+    5: true,
   }[step]
 
   return (
@@ -270,12 +272,24 @@ export default function SetupWizard({ onComplete, isMobile }) {
             </>
           )}
 
+          {step === 5 && (
+            <>
+              <h2 style={{ fontSize: 21, fontWeight: 800, color: 'var(--text)', margin: '0 0 8px' }}>You are all set</h2>
+              <p style={{ fontSize: 13.5, lineHeight: 1.6, color: 'var(--text2)', margin: '0 0 22px' }}>
+                Want the dashboard on your phone or another computer too? Scan this code and the whole setup transfers over. You can always find it later in Settings.
+              </p>
+              <PairQR config={cfg} />
+            </>
+          )}
+
           {/* Footer */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 30 }}>
             <div>{step > 0 && <Btn onClick={back}>Back</Btn>}</div>
-            {step < STEPS.length - 1
-              ? <Btn primary onClick={next} disabled={!canNext}>Continue</Btn>
-              : <Btn primary onClick={() => onComplete({ ...cfg, calendlyToken: cfg.calendlyToken.trim() })}>Finish setup</Btn>}
+            {step === 4
+              ? <Btn primary onClick={() => { set({ calendlyToken: cfg.calendlyToken.trim() }); next() }}>Finish setup</Btn>
+              : step === 5
+              ? <Btn primary onClick={() => onComplete(cfg)}>Open dashboard</Btn>
+              : <Btn primary onClick={next} disabled={!canNext}>Continue</Btn>}
           </div>
         </div>
       </div>
