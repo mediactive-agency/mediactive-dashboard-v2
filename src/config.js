@@ -70,3 +70,31 @@ export function importConfigFile(file) {
     reader.readAsText(file)
   })
 }
+
+// --- Device pairing via URL hash ---
+// The config is base64url encoded into the hash fragment, which never
+// leaves the browser (hash is not sent to any server).
+
+export function encodePairLink(cfg) {
+  const json = JSON.stringify(cfg)
+  const b64 = btoa(unescape(encodeURIComponent(json)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+  return `${window.location.origin}${window.location.pathname}#pair=${b64}`
+}
+
+export function consumePairFromUrl() {
+  const m = window.location.hash.match(/#pair=([A-Za-z0-9_-]+)/)
+  if (!m) return null
+  try {
+    let b64 = m[1].replace(/-/g, '+').replace(/_/g, '/')
+    while (b64.length % 4) b64 += '='
+    const json = decodeURIComponent(escape(atob(b64)))
+    const cfg = JSON.parse(json)
+    // Strip the hash so the config does not linger in the address bar or history
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    if (!isComplete(cfg)) return null
+    return { ...EMPTY_CONFIG, ...cfg }
+  } catch {
+    return null
+  }
+}
