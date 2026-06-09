@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './index.css'
+import { loadConfig, saveConfig } from './config'
 import { useData } from './hooks/useData'
+import { useCalendly } from './hooks/useCalendly'
 import { useTheme } from './hooks/useTheme'
 import { useWindowSize } from './hooks/useWindowSize'
 import Sidebar, { TogglePill } from './components/Sidebar'
@@ -9,16 +11,20 @@ import Dashboard from './components/Dashboard'
 import Outreach from './components/Outreach'
 import Sales from './components/Sales'
 import Tasks from './components/Tasks'
+import Settings from './components/Settings'
+import SetupWizard from './components/SetupWizard'
 
-function getGreeting() {
-  const h = parseInt(new Date().toLocaleString('en-US', { timeZone: 'Europe/Prague', hour: 'numeric', hour12: false }))
-  if (h >= 5 && h < 12) return 'Good morning, Kryštof'
-  if (h >= 12 && h < 18) return 'Good afternoon, Kryštof'
-  if (h >= 18 && h < 22) return 'Good evening, Kryštof'
-  return 'Good night, Kryštof'
+function getGreeting(name) {
+  const h = new Date().getHours()
+  const who = name ? `, ${name}` : ''
+  if (h >= 5 && h < 12) return `Good morning${who}`
+  if (h >= 12 && h < 18) return `Good afternoon${who}`
+  if (h >= 18 && h < 22) return `Good evening${who}`
+  return `Good night${who}`
 }
 
 export default function App() {
+  const [config, setConfig] = useState(() => loadConfig())
   const [page, setPage] = useState('dashboard')
   const [filter, setFilter] = useState('all')
   const [customFrom, setCustomFrom] = useState('')
@@ -28,9 +34,20 @@ export default function App() {
   const [dailyStats, setDailyStats] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const { data, loading, error, reload, loadedAt } = useData()
+  const { data, loading, error, reload, loadedAt } = useData(config)
+  const calendly = useCalendly(config)
   const { theme, toggle, isManual } = useTheme()
   const { isMobile, isTablet } = useWindowSize()
+
+  function handleSaveConfig(cfg) {
+    saveConfig(cfg)
+    setConfig(cfg)
+    setPage('dashboard')
+  }
+
+  if (!config) {
+    return <SetupWizard onComplete={handleSaveConfig} isMobile={isMobile} />
+  }
 
   function handleFilter(key) {
     setFilter(key)
@@ -41,8 +58,9 @@ export default function App() {
     setAppliedFrom(customFrom); setAppliedTo(customTo); setFilter('custom')
   }
 
-  const PAGE_TITLES = { dashboard: getGreeting(), outreach: 'Outreach', sales: 'Sales Calls', tasks: 'Daily Tasks' }
+  const PAGE_TITLES = { dashboard: getGreeting(config.userName), outreach: 'Outreach', sales: 'Sales Calls', tasks: 'Daily Tasks', settings: 'Settings' }
   const isDark = theme === 'dark'
+  const showFilter = page !== 'settings'
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -68,12 +86,14 @@ export default function App() {
           {/* Filter + toggle on desktop */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {!isMobile && <TogglePill isDark={isDark} onToggle={toggle} />}
-            <FilterBar active={filter} onFilter={handleFilter} customFrom={customFrom} customTo={customTo} onCustomFrom={setCustomFrom} onCustomTo={setCustomTo} onCustomApply={applyCustom} isMobile={isMobile} />
+            {showFilter && <FilterBar active={filter} onFilter={handleFilter} customFrom={customFrom} customTo={customTo} onCustomFrom={setCustomFrom} onCustomTo={setCustomTo} onCustomApply={applyCustom} isMobile={isMobile} />}
           </div>
         </div>
 
         <div style={{ padding: isMobile ? '0 16px 32px' : '0 40px 40px' }}>
-          {loading ? (
+          {page === 'settings' ? (
+            <Settings config={config} onSave={handleSaveConfig} isMobile={isMobile} />
+          ) : loading ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
               <div style={{ width: 32, height: 32, border: '2px solid var(--text)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
               <div style={{ color: 'var(--text3)', fontSize: 12 }}>Fetching live data...</div>
@@ -81,11 +101,14 @@ export default function App() {
           ) : error ? (
             <div style={{ textAlign: 'center', padding: 60 }}>
               <div style={{ color: '#EF4444', marginBottom: 8 }}>{error}</div>
-              <button onClick={reload} style={{ padding: '8px 18px', background: 'var(--text)', color: 'var(--bg)', border: 'none', borderRadius: 7, cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>Retry</button>
+              <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+                <button onClick={reload} style={{ padding: '8px 18px', background: 'var(--text)', color: 'var(--bg)', border: 'none', borderRadius: 7, cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>Retry</button>
+                <button onClick={() => setPage('settings')} style={{ padding: '8px 18px', background: 'transparent', color: 'var(--text2)', border: '1px solid var(--border2)', borderRadius: 7, cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>Check settings</button>
+              </div>
             </div>
           ) : data ? (
             <>
-              {page === 'dashboard' && <Dashboard data={data} filter={filter} customFrom={appliedFrom} customTo={appliedTo} dailyStats={dailyStats} theme={theme} isMobile={isMobile} isTablet={isTablet} />}
+              {page === 'dashboard' && <Dashboard data={data} filter={filter} customFrom={appliedFrom} customTo={appliedTo} dailyStats={dailyStats} theme={theme} isMobile={isMobile} isTablet={isTablet} calendly={calendly} />}
               {page === 'outreach'  && <Outreach  data={data} filter={filter} customFrom={appliedFrom} customTo={appliedTo} theme={theme} isMobile={isMobile} isTablet={isTablet} />}
               {page === 'sales'     && <Sales     data={data} filter={filter} customFrom={appliedFrom} customTo={appliedTo} theme={theme} isMobile={isMobile} isTablet={isTablet} />}
               {page === 'tasks'     && <Tasks     data={data} onDailyStats={setDailyStats} filter={filter} theme={theme} isMobile={isMobile} isTablet={isTablet} />}
