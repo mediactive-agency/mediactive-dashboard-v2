@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { parseSheetId, exportConfig, importConfigFile, clearConfig } from '../config'
 import { testProxy, fetchTabs } from '../proxy'
+import PairQR from './PairQR'
 
 function Section({ title, children }) {
   return (
@@ -174,6 +175,10 @@ export default function Settings({ config, onSave, isMobile }) {
         <div style={{ fontSize: 11.5, color: 'var(--text3)' }}>
           Get one at calendly.com → Integrations → API and webhooks. Stored only in this browser.
         </div>
+      </Section>
+
+      <Section title="Pair another device">
+        <PairQR config={cfg} compact />
       </Section>
 
       <Section title="Backup and reset">
