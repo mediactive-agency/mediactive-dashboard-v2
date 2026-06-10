@@ -38,7 +38,8 @@ export function useCalendly(config) {
     }
     load()
     return () => { cancelled = true }
-  }, [config])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config?.proxyUrl, config?.calendlyToken])
 
   return { events, loading, error }
 }
