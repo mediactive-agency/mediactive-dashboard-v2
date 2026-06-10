@@ -7,6 +7,10 @@ export function useData(config) {
   const [error, setError] = useState(null)
   const [loadedAt, setLoadedAt] = useState(null)
 
+  const configKey = config
+    ? [config.proxyUrl, config.outreachSheetId, config.outreachTabs?.join(','), config.salesSheetId, config.salesTab].join('|')
+    : null
+
   const load = useCallback(async () => {
     if (!config) return
     setLoading(true)
@@ -25,7 +29,8 @@ export function useData(config) {
     } finally {
       setLoading(false)
     }
-  }, [config])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey])
 
   useEffect(() => { load() }, [load])
 
