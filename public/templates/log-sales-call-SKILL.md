@@ -23,7 +23,7 @@ Pulls Fathom meeting summaries, extracts structured sales data, shows for review
 
 - Spreadsheet: "YOUR_SHEET_NAME" (ID: YOUR_SHEET_ID)
 - Worksheet: Sheet1
-- Columns A–H: Prospect name | Call date | Current state | Goal | Objections | Closed? | Next steps | Lead quality
+- Columns A–J: Prospect name | Call date | Current state | Goal | Objections | Closed? | Notes | Duration | Service | Lead quality
 
 ---
 
@@ -79,8 +79,13 @@ Write `None` if there are genuinely no objections.
 
 **Closed?** — `Yes` / `No` / `Follow-up`
 
-**Next steps** — One sentence max.
+**Notes** — One sentence max on next steps.
 Example: `Follow-up call scheduled for 24 Apr` or `Declined — no budget`
+
+**Duration** — Total call time in minutes as a plain number (e.g. `47`).
+Extract from Fathom meeting metadata. If the same prospect appears in two separate Fathom recordings on the same day (split call), sum the durations. If duration is not available write `n/a`.
+
+**Service** — The service that was pitched. Ask the user before logging if not clear from the transcript. Do not guess or infer — this must come from the user or be explicitly stated in the call.
 
 **Lead quality** — Score 1–5 only, no explanation:
 - 5 = ready to buy
@@ -116,7 +121,7 @@ execute_zapier_write_action(
   app: "Google Sheets",
   instructions: "Add this row to spreadsheet 'YOUR_SHEET_NAME', worksheet 'Sheet1':
     Prospect name=..., Call date=..., Current state=..., Goal=...,
-    Objections=..., Closed?=..., Next steps=..., Lead quality=...",
+    Objections=..., Closed?=..., Notes=..., Duration=..., Service=..., Lead quality=...",
   params: { spreadsheet: "YOUR_SHEET_NAME", worksheet: "Sheet1" }
 )
 ```
